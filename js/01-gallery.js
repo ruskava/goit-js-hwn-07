@@ -1,50 +1,46 @@
 import { galleryItems } from './gallery-items.js';
 // Change code below this line
 
-const galleryContainer = document.querySelector('.gallery');
-const galleryMarkup = createGalleryMarkup(galleryItems);
+const makeGalleryItemMarkup = (arr) => {
+    return arr
+        .map(({ description: descr, preview: preview, original: orig }) => {
+            return `<div class="gallery__item">
+						<a class="gallery__link" href="large-image.jpg">
+							<img
+								class="gallery__image"
+								src="${preview}"
+								data-source="${orig}"
+								alt="${descr}"
+								/>
+						</a>
+					</div>`;
+        })
+        .join('');
+};
 
-galleryContainer.addEventListener('click', onClickImage);
+const galleryContainerRef = document.querySelector('.gallery');
+galleryContainerRef.innerHTML = makeGalleryItemMarkup(galleryItems);
 
-galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
+const createLightboxInstance = (e) => {
+    const targetedImgUrl = e.target.dataset.source;
+    const instance = basicLightbox.create(`
+    <img src="${targetedImgUrl}" width="800" height="600">
+	`);
 
-//створення карточок 
-function createGalleryMarkup(galleryItems) {
-	return galleryItems
-		.map(({ preview, original, description }) => {
-			return `<div class="gallery__item">
-				<a class="gallery__link" href="${original}">
-					<img
-						class="gallery__image"
-						src="${preview}"
-						data-source="${original}"
-						alt="${description}"
-					/>
-				</a>
-			</div>`;
-		})
-		.join('');
-}
+    instance.show(
+        document.addEventListener('keydown', (e) => {
+            if (e.key && e.code === 'Escape') {
+                instance.close();
+            }
+        })
+    );
+};
 
-// делегування колекції
-function onClickImage(event) {
-	event.preventDefault();
-	const imgItem = event.target.classList.value.includes('gallery__image');
-	if (!imgItem) return;
+const onGalleryImgClick = (e) => {
+    if (e.target.nodeName !== 'IMG') return;
 
+    createLightboxInstance(e);
+    e.preventDefault();
+};
 
-	// моддальне вікно
-	const currentImgLink = event.target.dataset.source;
-	const modal = basicLightbox.create(`<img class="modal__image" src="${currentImgLink}">`);
-
-	modal.show();
-
-	window.addEventListener('keydown', onEscKeyPress);
-	function onEscKeyPress(event) {
-		const ESC_KEY_CODE = 'Escape';
-		if (event.code === ESC_KEY_CODE) {
-			modal.close();
-			window.removeEventListener('keydown', onEscKeyPress);
-		}
-	}
-}
+galleryContainerRef.addEventListener('click', onGalleryImgClick);
